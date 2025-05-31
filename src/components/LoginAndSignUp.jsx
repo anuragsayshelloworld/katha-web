@@ -4,129 +4,115 @@ import image1 from '../images/image1.jpg';
 import image2 from '../images/image2.jpg';
 import image3 from '../images/image3.jpg';
 
-
-export default function LoginAndSignUp() {
+export default function LoginAndSignUp(){
 const [usersData, setUsersData] = useState([]);
 const [todisplayeitherloginorsignup, setTodisplayeitherloginorsignup] = useState(true);
+const [loginError, setLoginError] = useState('');
+const [signUpError, setSignUpError] = useState('');
+
 useEffect(()=>{
 const readerDetails = JSON.parse(localStorage.getItem("readerDetails")) || [];
 setUsersData(readerDetails); 
 },[]);
 
 function hashPassword(str) {
-  let hash = 0;
-  if (str.length === 0) return hash.toString();
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash |= 0; // Convert to 32bit integer
-  }
-  return hash.toString();
+let hash = 0;
+if (str.length === 0) return hash.toString();
+for (let i = 0; i < str.length; i++) {
+const char = str.charCodeAt(i);
+hash = (hash << 5) - hash + char;
+hash |= 0;
 }
+return hash.toString();
+}
+const errorSetter = (err,type) => {
+if(type === 1){  
+setLoginError(err);
+setTimeout(() => { setLoginError(''); }, 6000);
+}
+if(type === 2){
+setSignUpError(err);
+setTimeout(() => { setSignUpError(''); }, 6000);
+}};
+
 return(
 <>
 <div className="container-fluid" style={{ backgroundColor: '#FDF6EC', minHeight: '100vh' }}>
 <div className="row">
-<div className="col-7">
-{/*Hero context below*/} 
+<div className="col-7"> 
 <Hero />   
 </div>
 <div className="col-5 mt-5">
-  
-{/*Either login or sign up based on state below*/}  
-
-{todisplayeitherloginorsignup ? <Login usersData={usersData} hashPassword={hashPassword} setTodisplayeitherloginorsignup={setTodisplayeitherloginorsignup} /> :  
-<SignUp setTodisplayeitherloginorsignup = {setTodisplayeitherloginorsignup} hashPassword={hashPassword} usersData={usersData} setUsersData={setUsersData}/>} 
-
+{todisplayeitherloginorsignup ? <Login setLoginError={setLoginError} loginError={loginError} errorSetter={errorSetter} usersData={usersData} hashPassword={hashPassword} setTodisplayeitherloginorsignup={setTodisplayeitherloginorsignup} /> :  
+<SignUp signUpError={signUpError} setSignUpError={setSignUpError} errorSetter={errorSetter} setTodisplayeitherloginorsignup = {setTodisplayeitherloginorsignup} hashPassword={hashPassword} usersData={usersData} setUsersData={setUsersData}/>} 
 </div>
 </div>
 </div>
 </>    
-)
-}
+)}
 
-
-function Login({setTodisplayeitherloginorsignup, hashPassword, usersData}){
+function Login({setTodisplayeitherloginorsignup, hashPassword, usersData, errorSetter, loginError,setLoginError}){
 const [loginEmail, setLoginemail] = useState('');
 const [loginPassword, setLoginPassword] = useState('');
 const [rememberMe, setRememberMe] = useState(false);
 const [showPassword, setShowPassword] = useState(false);
-const [loginError, setLoginError] = useState('');
 
 const handleLogin = (e) => {
-  e.preventDefault();
-  const isValidated = loginValidate(loginEmail, loginPassword);
+e.preventDefault();
+const isValidated = loginValidate(loginEmail, loginPassword);
+const isVerified = loginVerification(loginEmail, loginPassword);
+if(isVerified === true && isValidated){
+console.log("success");
+}
+else{
+console.log("Unable to login. Please try again");
+}
+};
 
-  if (!isValidated) {
-    console.log("Validation failed");
-    return; // Stop further execution
-  }
-  console.log("Validation check!");
-  const isVerified = loginVerification(loginEmail, loginPassword);
-  if(isVerified){
-    console.log("success");
-  }
-  else{
-    console.log("failed");
-  }
-  };
-
-const loginVerification = async (email, password) => {
-const hashedPassword = hashPassword(password.trim());
-const user = usersData.find((item) => email === item.email && hashedPassword === password);
+const loginVerification = (email, password) => {
+const hashedPassword = hashPassword(password);
+console.log(hashedPassword);
+const user = usersData.find((item) => email === item.email && item.password === hashedPassword);
 if(user){
   return true;
 }
 else{
+  errorSetter("Wrong credential. Please try again",1);
   return false;
-}
-};
+}};
 
 const loginValidate = (email, password) => {
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const numberRegex = /\d/;
+const numberRegex = /\d/; 
 
 if(!email || !password) {
-loginErrorSetter("You cannot leave the form empty");
+errorSetter("You cannot leave the form empty",1);
 return false;
 }
-
 if(!emailRegex.test(email)) {
-loginErrorSetter("Wrong credentials. Please try again.");
+errorSetter("Wrong credentials. Please try again.",1);
 return false;
 }
-
 if (password.length < 6) {
-loginErrorSetter("Wrong credentials. Please try again.");
+errorSetter("Wrong credentials. Please try again.",1);
 return false;
 }
-
 if (!numberRegex.test(password)) {
-loginErrorSetter("Wrong credentials. Please try again.");
+errorSetter("Wrong credentials. Please try again.",1);
 return false;
 }
-
 setLoginError('');
 return true;
 };
-
-const loginErrorSetter = (err) => {
-setLoginError(err);
-setTimeout(() => { setLoginError(''); }, 6000);
-};
-
 
 return(
 <>
 {loginError && (
 <div className="bg-light text-danger border border-danger rounded px-3 py-2 position-absolute shadow-sm" style={{ zIndex: 9999,
-top: '35px', right: '355px', maxWidth: '90%', width: 'auto', fontSize: '0.95rem', fontWeight: '500',}}>{loginError}</div>)}
-
+top: '35px', right: '28 5px', maxWidth: '90%', width: 'auto', fontSize: '0.95rem', fontWeight: '500',}}>{loginError}</div>)}
 <div className="card mt-5 shadow-sm" style={{maxWidth:'440px', backgroundColor:'#FAF6EA'}}>    
 <div className="card-header fw-medium" style={{backgroundColor:'##F9E79F'}}>Login</div>
-
 <div className="card-body" style={{maxWidth:'420px'}}>
-{/* Form starts below*/}
 <form onSubmit={handleLogin}>
 <div className="mb-3">
 <label htmlFor="email" className="form-label fw-medium">Email address</label>
@@ -154,17 +140,13 @@ top: '35px', right: '355px', maxWidth: '90%', width: 'auto', fontSize: '0.95rem'
 </div>
 </div>
 </>
-);    
-}
+);}
 
-
-
-function SignUp({usersData,setTodisplayeitherloginorsignup,hashPassword}){
+function SignUp({usersData,setTodisplayeitherloginorsignup,hashPassword,errorSetter,signUpError,setSignUpError}){
 const [agreement, setAgreement] = useState(false);
 const [signUpEmail, setSignUpEmail] = useState('');
 const [signUpPassword, setSignUpPassword] = useState('');
 const [showPassword, setShowPassword] = useState(false); 
-const [signUpError, setSignUpError] = useState('');
 const [name, setName] = useState('');
 const [actualPin, setActualPin] = useState('');
 const [enteredPin, setEnteredPin] = useState('');
@@ -192,8 +174,7 @@ setShowModal(true);
 }
 else{
 SignUpErrorSetter("Trouble sending email.")    
-} 
-};
+}};
 
 const signUpVerified = (email) => {
 const emailExists = usersData.some((item) => email === item.email);
@@ -204,49 +185,41 @@ return false;
 return true;
 };
 
-
 const signUpValidate = (email, password, name) => {
 email = email.trim();
 password = password.trim();
 name = name.trim();
 
 if(!agreement){
-SignUpErrorSetter("You must agree to our terms and policies");
+errorSetter("You must agree to our terms and policies",2);
 return false;    
 }
-
 if (!email || !password || !name) {
-SignUpErrorSetter("You cannot leave the form empty");
+errorSetter("You cannot leave the form empty",2);
 return false;
 }
-
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const numberRegex = /\d/;
 const nameRegex = /^[a-zA-Z\s]{2,30}$/;
 
 if (!nameRegex.test(name)) {
-SignUpErrorSetter("Name must be 2–30 letters long and contain only letters and spaces");
+errorSetter("Name must be 2–30 letters long and contain only letters and spaces",2);
 return false;
 }
 if(!emailRegex.test(email)) {
-SignUpErrorSetter("The email is invalid");
+errorSetter("The email is invalid",2);
 return false;
 }
 if(password.length < 6) {
-SignUpErrorSetter("Password length must be greater than 6");
+errorSetter("Password length must be greater than 6",2);
 return false;
 }
 if(!numberRegex.test(password)) {
-SignUpErrorSetter("Password must contain one number");
+errorSetter("Password must contain one number",2);
 return false;
 }
 setSignUpError('');
 return true;
-};
-
-const SignUpErrorSetter = (err) => {
-setSignUpError(err);
-setTimeout(() => { setSignUpError(''); }, 6000);
 };
 
 const sendPin = async ({ email, pin_code }) => {
@@ -264,8 +237,7 @@ return false;
 }
 };
 
-const verifyPin = () => {
-   
+const verifyPin = () => {   
 if(enteredPin.trim() === actualPin){
 const hashedPassword = hashPassword(signUpPassword);
 let newUser = {
@@ -294,8 +266,7 @@ setTodisplayeitherloginorsignup(true);
 }
 else{
 setFailureMessage('Pin does not match. Please try again')
-}
-}
+}}
 
 return(
 <>
@@ -324,7 +295,6 @@ style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 1050 }}>
 </div>
 </div>
 )}
-
 
 {signUpError && (
 <div className="bg-light text-danger border border-danger rounded px-3 py-2 position-absolute shadow-sm" style={{ zIndex: 9999,
@@ -375,61 +345,51 @@ top: '35px', right: '245px', maxWidth: '90%', width: 'auto', fontSize: '0.95rem'
 );     
 }
 
-
-
 const Hero = () => {
-  const [hoveredIndex, setHoveredIndex] = useState(null);
+const [hoveredIndex, setHoveredIndex] = useState(null);
+const cardStyle = (index) => ({
+display: 'flex',
+alignItems: 'flex-start',
+padding: '0px',
+marginBottom: '16px',
+borderBottom: '1px solid #dee2e6',
+borderRadius: '10px',
+backgroundColor: hoveredIndex === index ? '#f9f9f9' : 'transparent',
+boxShadow: hoveredIndex === index ? '0 4px 12px rgba(0, 0, 0, 0.1)' : 'none',
+transition: 'background-color 0.3s, box-shadow 0.3s',
+cursor: 'pointer'
+});
+const imageStyle = {
+width: '100px',
+height: '100px',
+objectFit: 'cover',
+marginRight: '16px',
+borderRadius: '8px',
+boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+border: '1px solid #ccc'
+};
 
-  const cardStyle = (index) => ({
-    display: 'flex',
-    alignItems: 'flex-start',
-    padding: '0px',
-    marginBottom: '16px',
-    borderBottom: '1px solid #dee2e6',
-    borderRadius: '10px',
-    backgroundColor: hoveredIndex === index ? '#f9f9f9' : 'transparent',
-    boxShadow: hoveredIndex === index ? '0 4px 12px rgba(0, 0, 0, 0.1)' : 'none',
-    transition: 'background-color 0.3s, box-shadow 0.3s',
-    cursor: 'pointer'
-  });
-
-  const imageStyle = {
-    width: '100px',
-    height: '100px',
-    objectFit: 'cover',
-    marginRight: '16px',
-    borderRadius: '8px',
-    boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
-    border: '1px solid #ccc'
-  };
-
-  return (
-    <>
-    <h1 style={{ fontFamily: `'Dancing Script', cursive`, color: '#5C4033', marginLeft: '110px', marginTop: '55px'}}>KathaReader</h1>
-    <div className="container my-4" style={{ marginLeft: '100px' }}>
-    <div style={cardStyle(0)} onMouseEnter={() => setHoveredIndex(0)} onMouseLeave={() => setHoveredIndex(null)}>
-    <img src={image1} alt="Award" style={imageStyle} />
-    <div>
-    <h5 style={{ marginBottom: '4px' }}>KathaReader Spirity Awards 2025</h5>
-    <p style={{ margin: 0 }}>Become an author and win NPR. 50,000!</p>
-    </div>
-    </div>
-    <div style={cardStyle(1)} onMouseEnter={() => setHoveredIndex(1)} onMouseLeave={() => setHoveredIndex(null)}>
-    <img src={image2} alt="Benefits" style={imageStyle} />
-    <div>
-    <h5 style={{ marginBottom: '4px' }}>KathaReader Author Benefits</h5>
-    <p style={{ margin: 0 }}>Why should you start your writing journey here at KathaReader?</p>
-    </div>
-    </div>
-    <div style={cardStyle(2)} onMouseEnter={() => setHoveredIndex(2)} onMouseLeave={() => setHoveredIndex(null)}>
-    <img src={image3} alt="Bonus" style={imageStyle} />
-    <div>
-    <h5 style={{ marginBottom: '4px' }}>More Novels and Bonus!</h5>
-    <p style={{ margin: 0 }}>Download the App to get coins, FP, badges, and frames!
-    </p>
-    </div>
-    </div>
-    </div>
-    </>
-  );
-  };
+return (
+<>
+<h1 style={{ fontFamily: `'Dancing Script', cursive`, color: '#5C4033', marginLeft: '110px', marginTop: '55px'}}>KathaReader</h1>
+<div className="container my-4" style={{ marginLeft: '100px' }}>
+<div style={cardStyle(0)} onMouseEnter={() => setHoveredIndex(0)} onMouseLeave={() => setHoveredIndex(null)}>
+<img src={image1} alt="Award" style={imageStyle} />
+<div>
+<h5 style={{ marginBottom: '4px' }}>KathaReader Spirity Awards 2025</h5>
+<p style={{ margin: 0 }}>Become an author and win NPR. 50,000!</p>
+</div></div>
+<div style={cardStyle(1)} onMouseEnter={() => setHoveredIndex(1)} onMouseLeave={() => setHoveredIndex(null)}>
+<img src={image2} alt="Benefits" style={imageStyle} />
+<div>
+<h5 style={{ marginBottom: '4px' }}>KathaReader Author Benefits</h5>
+<p style={{ margin: 0 }}>Why should you start your writing journey here at KathaReader?</p>
+</div></div>
+<div style={cardStyle(2)} onMouseEnter={() => setHoveredIndex(2)} onMouseLeave={() => setHoveredIndex(null)}>
+<img src={image3} alt="Bonus" style={imageStyle} />
+<div>
+<h5 style={{ marginBottom: '4px' }}>More Novels and Bonus!</h5>
+<p style={{ margin: 0 }}>Download the App to get coins, FP, badges, and frames!</p>
+</div></div></div>
+</>
+);};
