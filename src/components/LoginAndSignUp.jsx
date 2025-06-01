@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext, use } from "react";
 import { useNavigate } from "react-router-dom";
 import emailjs from '@emailjs/browser';
+import UserContext from "../context/UserContext";
 import image1 from '../images/image1.jpg';
 import image2 from '../images/image2.jpg';
 import image3 from '../images/image3.jpg';
@@ -59,11 +60,12 @@ const [loginPassword, setLoginPassword] = useState('');
 const [rememberMe, setRememberMe] = useState(false);
 const [showPassword, setShowPassword] = useState(false);
 const Navigate = useNavigate();
+const {setUserData} = useContext(UserContext);
 
 useEffect(()=>{
-const isLoggedIn = JSON.parse(localStorage.getItem("remembrance")) || false;   
+const isLoggedIn = JSON.parse(localStorage.getItem("remembrance")) || JSON.parse(localStorage.getItem("temporary")) || false;   
 if(isLoggedIn){
-Navigate('/app', {replace:true});
+Navigate('/Dashboard', {replace:true});
 }
 },[]);
 
@@ -71,9 +73,17 @@ const handleLogin = (e) => {
 e.preventDefault();
 const isValidated = loginValidate(loginEmail, loginPassword);
 const isVerified = loginVerification(loginEmail, loginPassword);
-if(isVerified === true && isValidated){
-localStorage.setItem("remembrance", JSON.stringify(loginEmail));  
-Navigate("/app",{replace:true});
+if(isVerified && isValidated && rememberMe === true){
+localStorage.setItem("remembrance", JSON.stringify(loginEmail));
+localStorage.setItem("currentuserData", JSON.stringify(isVerified));
+setUserData(isVerified);
+Navigate("/Dashboard",{replace:true});
+}
+else if(isVerified && isValidated && rememberMe === false){
+localStorage.setItem("temporary", JSON.stringify(loginEmail));  
+localStorage.setItem("currentuserData", JSON.stringify(isVerified));
+setUserData(isVerified);
+Navigate("/Dashboard",{replace:true});
 }
 else{
 console.log("Unable to login. Please try again");
@@ -82,14 +92,14 @@ console.log("Unable to login. Please try again");
 
 const loginVerification = (email, password) => {
 const hashedPassword = hashPassword(password);
-console.log(hashedPassword);
-const user = usersData.find((item) => email === item.email && item.password === hashedPassword);
+const user = usersData.find((item) => email === item.email  && item.password === hashedPassword);
 if(user){
-  return true;
+ console.log("found");   
+return user;
 }
 else{
-  errorSetter("Wrong credential. Please try again",1);
-  return false;
+errorSetter("Wrong credential. Please try again",1);
+return false;
 }};
 
 const loginValidate = (email, password) => {
@@ -167,6 +177,7 @@ const [failureMessage,setFailureMessage] = useState('');
 const [successMessage, setSuccessMessage] = useState('');
 const [showSucess, setShowSucess] = useState(false);
 const [isLoading, setIsLoading] = useState(false);
+const { setUserData } = useContext(UserContext); 
 
 const handleSignUp = async (e) => {
 e.preventDefault();
@@ -184,13 +195,13 @@ setActualPin(pin);
 setShowModal(true); 
 }
 else{
-SignUpErrorSetter("Trouble sending email.")    
+errorSetterr("Trouble sending email.")    
 }};
 
 const signUpVerified = (email) => {
 const emailExists = usersData.some((item) => email === item.email);
 if (emailExists) {
-SignUpErrorSetter("User with this email already exists");
+errorSetter("User with this email already exists");
 return false;
 }
 return true;
@@ -250,7 +261,7 @@ return false;
 
 const verifyPin = () => {   
 if(enteredPin.trim() === actualPin){
-const hashedPassword = hashPassword(signUpPassword);
+const hashedPassword = hashPassword(signUpPassword.trim());
 let newUser = {
 name: name,
 email: signUpEmail,
@@ -259,7 +270,6 @@ role: 0,
 }
 let updatedUserData = [...usersData, newUser];
 localStorage.setItem("readerDetails",JSON.stringify(updatedUserData));
-
 setShowModal(false);
 setActualPin('');
 setEnteredPin('');
@@ -272,6 +282,7 @@ setTimeout(()=>{
 setSuccessMessage('');
 setShowSucess(false);
 setTodisplayeitherloginorsignup(true);
+window.location.reload();
 },2000);
 
 }
