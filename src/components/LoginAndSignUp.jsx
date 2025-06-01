@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import emailjs from '@emailjs/browser';
 import image1 from '../images/image1.jpg';
 import image2 from '../images/image2.jpg';
@@ -9,6 +10,7 @@ const [usersData, setUsersData] = useState([]);
 const [todisplayeitherloginorsignup, setTodisplayeitherloginorsignup] = useState(true);
 const [loginError, setLoginError] = useState('');
 const [signUpError, setSignUpError] = useState('');
+
 
 useEffect(()=>{
 const readerDetails = JSON.parse(localStorage.getItem("readerDetails")) || [];
@@ -56,13 +58,22 @@ const [loginEmail, setLoginemail] = useState('');
 const [loginPassword, setLoginPassword] = useState('');
 const [rememberMe, setRememberMe] = useState(false);
 const [showPassword, setShowPassword] = useState(false);
+const Navigate = useNavigate();
+
+useEffect(()=>{
+const isLoggedIn = JSON.parse(localStorage.getItem("remembrance")) || false;   
+if(isLoggedIn){
+Navigate('/app', {replace:true});
+}
+},[]);
 
 const handleLogin = (e) => {
 e.preventDefault();
 const isValidated = loginValidate(loginEmail, loginPassword);
 const isVerified = loginVerification(loginEmail, loginPassword);
 if(isVerified === true && isValidated){
-console.log("success");
+localStorage.setItem("remembrance", JSON.stringify(loginEmail));  
+Navigate("/app",{replace:true});
 }
 else{
 console.log("Unable to login. Please try again");
