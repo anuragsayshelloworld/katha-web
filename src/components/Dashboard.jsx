@@ -5,41 +5,37 @@ import UserContext from "../context/UserContext";
 import { useContext } from "react";
 
 export default function Dashboard() {
-  const navigate = useNavigate();
-  const {userData, setUserData} = useContext(UserContext);
-  const logout = () => {
-    localStorage.removeItem("remembrance");
-    localStorage.removeItem("temporary");
-    localStorage.removeItem("currentuserData");
-    setUserData('');
-    navigate("/", { replace: true });
-  };
+const navigate = useNavigate();
+const {userData, setUserData} = useContext(UserContext);
+const logout = () => {
+localStorage.removeItem("remembrance");
+localStorage.removeItem("temporary");
+localStorage.removeItem("currentuserData");
+setUserData('');
+navigate("/", { replace: true });
+};
 
-  return (
-    <div className="container mt-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>Dashboard of {userData.email}</h2>
-        <button onClick={logout} className="btn btn-danger">
-          Log out
-        </button>
-      </div>
+return (
+<div className="container mt-4">
+<div className="d-flex justify-content-between align-items-center mb-4">
+<h2>Dashboard of {userData.email}</h2>
+<button onClick={logout} className="btn btn-danger">
+Log out
+</button>
+</div>
 
-      <nav className="nav nav-tabs mb-3">
-        <Link to="/Dashboard/UserProfile" className="nav-link">
-          My Profile
-        </Link>
-        <Link to="/Dashboard/Library" className="nav-link">
-          Library
-        </Link>
-      </nav>
+<nav className="nav nav-tabs mb-3">
+<Link to="/Dashboard/UserProfile" className="nav-link">My Profile</Link>
+<Link to="/Dashboard/Library" className="nav-link">Library</Link>
+</nav>
 
-      <div className="card p-4 shadow-sm">
-        <Routes>
-          <Route index element={<UserProfile />} />
-          <Route path="UserProfile" element={<UserProfile />} />
-          <Route path="Library" element={<Library />} />
-        </Routes>
-      </div>
-    </div>
-  );
+<div className="card p-4 shadow-sm">
+<Routes>
+<Route index element={<UserProfile />} />
+<Route path="UserProfile" element={<UserProfile />} />
+<Route path="Library" element={<Library />} />
+</Routes>
+</div>
+</div>
+);
 }
