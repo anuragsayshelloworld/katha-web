@@ -6,7 +6,7 @@ import image1 from '../images/image1.jpg';
 import image2 from '../images/image2.jpg';
 import image3 from '../images/image3.jpg';
 
-export default function LoginAndSignUp(){
+export default function LoginAndSignUp({hashPassword}){
 const [usersData, setUsersData] = useState([]);
 const [todisplayeitherloginorsignup, setTodisplayeitherloginorsignup] = useState(true);
 const [loginError, setLoginError] = useState('');
@@ -18,16 +18,7 @@ const readerDetails = JSON.parse(localStorage.getItem("readerDetails")) || [];
 setUsersData(readerDetails); 
 },[]);
 
-function hashPassword(str) {
-let hash = 0;
-if (str.length === 0) return hash.toString();
-for (let i = 0; i < str.length; i++) {
-const char = str.charCodeAt(i);
-hash = (hash << 5) - hash + char;
-hash |= 0;
-}
-return hash.toString();
-}
+
 const errorSetter = (err,type) => {
 if(type === 1){  
 setLoginError(err);
